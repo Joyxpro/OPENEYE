@@ -236,6 +236,8 @@ class PicturesFolderHandler(FileSystemEventHandler):
 if __name__ == "__main__":
     try:
         app = OpenEyeApp()
+        app.root.mainloop()
     except KeyboardInterrupt:
-        app.observer.stop()
-        app.observer.join()
+        if hasattr(app, 'observer'):
+            app.observer.stop()
+            app.observer.join()
