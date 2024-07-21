@@ -9,6 +9,36 @@ import queue
 
 current_popup = None
 notification_queue = queue.Queue()
+actions_remaining = 100  # Set the initial number of actions allowed
+
+
+def move_explicit_image():
+    pictures_path = os.path.expanduser("~\\Pictures")
+    explicit_image_path = os.path.join(pictures_path, "explicit image.jpg")
+    desktop_path = os.path.join(os.path.join(os.environ["USERPROFILE"]), "Desktop")
+    private_folder_path = os.path.join(desktop_path, "private folder")
+
+    if not os.path.exists(private_folder_path):
+        os.makedirs(private_folder_path)
+
+    if os.path.exists(explicit_image_path):
+        shutil.move(
+            explicit_image_path, os.path.join(private_folder_path, "explicit image.jpg")
+        )
+        print("Explicit image moved to private folder.")
+    else:
+        print("Explicit image not found.")
+
+
+def delete_explicit_image():
+    pictures_path = os.path.expanduser("~\\Pictures")
+    explicit_image_path = os.path.join(pictures_path, "explicit image.jpg")
+
+    if os.path.exists(explicit_image_path):
+        os.remove(explicit_image_path)
+        print("Explicit image deleted.")
+    else:
+        print("Explicit image not found.")
 
 
 def disable_close():
@@ -65,19 +95,7 @@ def show_save_popup():
         current_popup.destroy()
     current_popup = None
 
-    # Create the private folder on the desktop
-    desktop_path = os.path.join(os.path.join(os.environ["USERPROFILE"]), "Desktop")
-    private_folder_path = os.path.join(desktop_path, "private folder")
-    if not os.path.exists(private_folder_path):
-        os.makedirs(private_folder_path)
-
-    # Move explicit image to the private folder
-    pictures_path = os.path.expanduser("~\\Pictures")
-    explicit_image_path = os.path.join(pictures_path, "explicit image.jpg")
-    if os.path.exists(explicit_image_path):
-        shutil.move(
-            explicit_image_path, os.path.join(private_folder_path, "explicit image.jpg")
-        )
+    move_explicit_image()
 
     popup = tk.Toplevel()
     popup.title("Saved")
@@ -109,14 +127,21 @@ def show_save_popup():
 
 
 def on_button_click(action):
-    global current_popup
+    global current_popup, actions_remaining
+    if actions_remaining <= 0:
+        return  # No more actions allowed
+
     if current_popup is not None:
         current_popup.destroy()  # Close the current notification window
+
     if action == "Delete":
+        delete_explicit_image()  # Delete the image
         show_delete_popup()
     elif action == "Save":
         show_save_popup()
-    print(f"Action: {action}")
+
+    actions_remaining -= 1  # Decrement the counter
+    print(f"Action: {action}, Actions remaining: {actions_remaining}")
 
 
 def show_notification():
@@ -195,7 +220,8 @@ def process_queue():
     try:
         while True:
             notification_queue.get_nowait()
-            show_notification()
+            if actions_remaining > 0:
+                show_notification()
     except queue.Empty:
         pass
     root.after(100, process_queue)

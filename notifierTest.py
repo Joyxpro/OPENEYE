@@ -9,6 +9,41 @@ import queue
 
 current_popup = None
 notification_queue = queue.Queue()
+notification_in_progress = False  # Flag to track if a notification is being processed
+
+
+# Define the move_explicit_image function
+def move_explicit_image():
+    global action_counter
+
+    if action_counter == 0:
+        return  # Do nothing if the action counter has reached zero
+
+    # Path to the Pictures folder
+    pictures_path = os.path.expanduser("~\\Pictures")
+
+    # Path to the image named "explicit image.jpg"
+    explicit_image_path = os.path.join(pictures_path, "explicit image.jpg")
+
+    # Path to the Desktop
+    desktop_path = os.path.join(os.path.join(os.environ["USERPROFILE"]), "Desktop")
+
+    # Path to the "private folder" on the Desktop
+    private_folder_path = os.path.join(desktop_path, "private folder")
+
+    # Check if the "private folder" exists, create it if it doesn't
+    if not os.path.exists(private_folder_path):
+        os.makedirs(private_folder_path)
+
+    # Move the explicit image to the "private folder" if it exists
+    if os.path.exists(explicit_image_path):
+        shutil.move(
+            explicit_image_path, os.path.join(private_folder_path, "explicit image.jpg")
+        )
+        print("Explicit image moved to private folder.")
+        action_counter -= 1
+    else:
+        print("Explicit image not found.")
 
 
 def disable_close():
@@ -25,7 +60,7 @@ def center_window(window):
 
 
 def show_delete_popup():
-    global current_popup
+    global current_popup, notification_in_progress
     if current_popup is not None:
         current_popup.destroy()
     current_popup = None
@@ -57,10 +92,11 @@ def show_delete_popup():
 
     center_window(popup)
     current_popup = popup
+    notification_in_progress = False 
 
 
 def show_save_popup():
-    global current_popup
+    global current_popup, notification_in_progress
     if current_popup is not None:
         current_popup.destroy()
     current_popup = None
@@ -106,10 +142,11 @@ def show_save_popup():
 
     center_window(popup)
     current_popup = popup
+    notification_in_progress = False  # Reset the flag
 
 
 def on_button_click(action):
-    global current_popup
+    global current_popup, notification_in_progress
     if current_popup is not None:
         current_popup.destroy()  # Close the current notification window
     if action == "Delete":
@@ -120,7 +157,10 @@ def on_button_click(action):
 
 
 def show_notification():
-    global current_popup
+    global current_popup, notification_in_progress
+    if notification_in_progress:
+        return  # Skip processing if a notification is already being processed
+
     if current_popup is not None:
         current_popup.destroy()
     current_popup = None
@@ -189,13 +229,18 @@ def show_notification():
 
     center_window(popup)
     current_popup = popup
+    notification_in_progress = True  # Set the flag
 
 
 def process_queue():
+    global notification_in_progress
     try:
         while True:
             notification_queue.get_nowait()
-            show_notification()
+            if (
+                not notification_in_progress
+            ):  # Process if no other notification is in progress
+                show_notification()
     except queue.Empty:
         pass
     root.after(100, process_queue)
