@@ -1,6 +1,7 @@
+# Importing all the necessary packages..
+
 import os
 import shutil
-import threading
 import tkinter as tk
 from PIL import Image, ImageTk
 from watchdog.observers import Observer
@@ -9,7 +10,7 @@ import queue
 
 current_popup = None
 notification_queue = queue.Queue()
-actions_remaining = 100  # Set the initial number of actions allowed
+actions_remaining = 100
 
 
 def move_explicit_image():
