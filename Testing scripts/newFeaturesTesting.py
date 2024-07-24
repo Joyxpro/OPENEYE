@@ -1,5 +1,3 @@
-# Importing all the necessary packages..
-
 import os
 import shutil
 import tkinter as tk
@@ -13,9 +11,9 @@ notification_queue = queue.Queue()
 
 
 def move_explicit_image():
-    pictures_path = os.path.expanduser("~\\Pictures")
+    pictures_path = os.path.expanduser("~/Pictures")
     explicit_image_path = os.path.join(pictures_path, "explicit image.jpg")
-    desktop_path = os.path.join(os.path.join(os.environ["USERPROFILE"]), "Desktop")
+    desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
     private_folder_path = os.path.join(desktop_path, "private folder")
 
     if not os.path.exists(private_folder_path):
@@ -31,7 +29,7 @@ def move_explicit_image():
 
 
 def delete_explicit_image():
-    pictures_path = os.path.expanduser("~\\Pictures")
+    pictures_path = os.path.expanduser("~/Pictures")
     explicit_image_path = os.path.join(pictures_path, "explicit image.jpg")
 
     if os.path.exists(explicit_image_path):
@@ -162,9 +160,7 @@ def show_notification():
     title_frame = tk.Frame(popup, bg="#f8f9fa")
     title_frame.pack(pady=10)
 
-    img = Image.open(
-        "C:\\Users\\JOY SENGUPTA\\Desktop\\code playground\\OPENEYE\\icon.ico"
-    )
+    img = Image.open("icon.ico")
     img = img.resize((30, 30))
     photo = ImageTk.PhotoImage(img)
 
@@ -232,7 +228,7 @@ if __name__ == "__main__":
     root = tk.Tk()
     root.withdraw()  # Hide the root window
 
-    pictures_path = os.path.expanduser("~\\Pictures")
+    pictures_path = os.path.expanduser("~/Pictures")
 
     event_handler = PicturesFolderHandler()
     observer = Observer()
@@ -244,9 +240,5 @@ if __name__ == "__main__":
     root.after(100, process_queue)
     root.mainloop()
 
-    try:
-        while True:
-            pass  # Keep the script running
-    except KeyboardInterrupt:
-        observer.stop()
-        observer.join()
+    observer.stop()
+    observer.join()

@@ -10,33 +10,31 @@ current_popup = None
 notification_queue = queue.Queue()
 
 
-def move_explicit_image():
+def move_explicit_images():
     pictures_path = os.path.expanduser("~/Pictures")
-    explicit_image_path = os.path.join(pictures_path, "explicit image.jpg")
     desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
     private_folder_path = os.path.join(desktop_path, "private folder")
 
     if not os.path.exists(private_folder_path):
         os.makedirs(private_folder_path)
 
-    if os.path.exists(explicit_image_path):
-        shutil.move(
-            explicit_image_path, os.path.join(private_folder_path, "explicit image.jpg")
-        )
-        print("Explicit image moved to private folder.")
-    else:
-        print("Explicit image not found.")
+    for file_name in os.listdir(pictures_path):
+        if "explicit" in file_name.lower():
+            file_path = os.path.join(pictures_path, file_name)
+            if os.path.isfile(file_path):
+                shutil.move(file_path, os.path.join(private_folder_path, file_name))
+                print(f"Moved '{file_name}' to private folder.")
 
 
-def delete_explicit_image():
+def delete_explicit_images():
     pictures_path = os.path.expanduser("~/Pictures")
-    explicit_image_path = os.path.join(pictures_path, "explicit image.jpg")
 
-    if os.path.exists(explicit_image_path):
-        os.remove(explicit_image_path)
-        print("Explicit image deleted.")
-    else:
-        print("Explicit image not found.")
+    for file_name in os.listdir(pictures_path):
+        if "explicit" in file_name.lower():
+            file_path = os.path.join(pictures_path, file_name)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+                print(f"Deleted '{file_name}'.")
 
 
 def disable_close():
@@ -93,7 +91,7 @@ def show_save_popup():
         current_popup.destroy()
     current_popup = None
 
-    move_explicit_image()
+    move_explicit_images()
 
     popup = tk.Toplevel()
     popup.title("Saved")
@@ -130,7 +128,7 @@ def on_button_click(action):
         current_popup.destroy()  # Close the current notification window
 
     if action == "Delete":
-        delete_explicit_image()  # Delete the image
+        delete_explicit_images()  # Delete the image
         show_delete_popup()
     elif action == "Save":
         show_save_popup()
@@ -221,7 +219,8 @@ def process_queue():
 class PicturesFolderHandler(FileSystemEventHandler):
     def on_created(self, event):
         if not event.is_directory:
-            notification_queue.put(event)
+            if "explicit" in os.path.basename(event.src_path).lower():
+                notification_queue.put(event)
 
 
 if __name__ == "__main__":
